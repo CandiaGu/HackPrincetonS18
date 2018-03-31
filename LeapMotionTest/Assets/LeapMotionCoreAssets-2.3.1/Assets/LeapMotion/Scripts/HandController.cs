@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using Leap;
 using System;
 
+
+
 /**
 * The Controller object that instantiates hands and tools to represent the hands and tools tracked
 * by the Leap Motion device.
@@ -60,7 +62,7 @@ public class HandController : MonoBehaviour {
   public bool destroyHands = true;
 
   /** The scale factors for hand movement. Set greater than 1 to give the hands a greater range of motion. */
-  public Vector3 handMovementScale = Vector3.one;
+	public Vector3 handMovementScale = new Vector3(1, 0, 0);
 
   // Recording parameters.
   /** Set true to enable recording. */
@@ -89,7 +91,8 @@ public class HandController : MonoBehaviour {
   private long prev_graphics_id_ = 0;
   private long prev_physics_id_ = 0;
 
-  private Vector prev_tip_loc = null;
+	private Vector3 prev_tip = Vector3.zero;
+  //private LineRenderer lineRenderer;
 
   
   /** Draws the Leap Motion gizmo when in the Unity editor. */
@@ -123,6 +126,8 @@ public class HandController : MonoBehaviour {
   /** Initalizes the hand and tool lists and recording, if enabled.*/
   void Start() {
 
+
+	//lineRenderer = gameObject.AddComponent<LineRenderer> ();
     // Initialize hand lookup tables.
     hand_graphics_ = new Dictionary<int, HandModel>();
     hand_physics_ = new Dictionary<int, HandModel>();
@@ -195,8 +200,15 @@ public class HandController : MonoBehaviour {
 	  //Get the finger_tip location if finger is pinched
 		if (leap_hand.PinchStrength > 0.4) {
 				FingerList point = leap_hand.Fingers.FingerType (Finger.FingerType.TYPE_INDEX);
-				Vector new_tip = 
-				Debug.Log (point[0].TipPosition);
+				Vector3 new_tip = UnityVectorExtension.ToUnity(point [0].TipPosition);
+
+				Debug.Log ("new" + new_tip);
+				Debug.Log ("prev" + prev_tip);
+
+				Debug.DrawLine (prev_tip, new_tip, Color.white, 10);
+				//Debug.DrawLine(Vector3.zero, new Vector3(100,100,100), Color.white, 100);
+
+				prev_tip = new_tip;
 
 		}
 
