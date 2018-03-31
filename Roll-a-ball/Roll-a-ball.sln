@@ -1,0 +1,29 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Roll-a-ball", "Assembly-CSharp.csproj", "{12AD755F-E738-FA7E-1C34-C5745A6D1C71}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Roll-a-ball", "Assembly-CSharp-Editor.csproj", "{F875A32C-4CD6-3490-E13E-2CFA1FA0067F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{12AD755F-E738-FA7E-1C34-C5745A6D1C71}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{12AD755F-E738-FA7E-1C34-C5745A6D1C71}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{12AD755F-E738-FA7E-1C34-C5745A6D1C71}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{12AD755F-E738-FA7E-1C34-C5745A6D1C71}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F875A32C-4CD6-3490-E13E-2CFA1FA0067F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F875A32C-4CD6-3490-E13E-2CFA1FA0067F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F875A32C-4CD6-3490-E13E-2CFA1FA0067F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F875A32C-4CD6-3490-E13E-2CFA1FA0067F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = Assembly-CSharp.csproj
+	EndGlobalSection
+EndGlobal
