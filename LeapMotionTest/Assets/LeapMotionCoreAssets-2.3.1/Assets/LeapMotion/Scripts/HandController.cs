@@ -8,6 +8,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using Leap;
 using System;
+using UnityEngine.Networking;
 
 
 
@@ -126,7 +127,7 @@ public class HandController : MonoBehaviour {
   /** Initalizes the hand and tool lists and recording, if enabled.*/
   void Start() {
 
-
+		sendRequest ();
 	//lineRenderer = gameObject.AddComponent<LineRenderer> ();
     // Initialize hand lookup tables.
     hand_graphics_ = new Dictionary<int, HandModel>();
@@ -494,4 +495,26 @@ public class HandController : MonoBehaviour {
       recorder_.NextFrame();
     }
   }
+
+	public void sendRequest(){
+
+		List<IMultipartFormSection> formData = new List<IMultipartFormSection>();
+		formData.Add( new MultipartFormDataSection("field1=foo&field2=bar") );
+		formData.Add( new MultipartFormFileSection("my file data", "myfile.txt") );
+		Debug.Log(formData);
+
+		UnityWebRequest www = UnityWebRequest.Post("https://www.wolframcloud.com/objects/adhebbar/junk/demo", formData);
+		www.SendWebRequest ();
+
+		if(www.isNetworkError) {
+			Debug.Log(www.error);
+		}
+		else {
+			Debug.Log("Form upload complete!");
+		}
+	
+
+	}
+
+
 }
