@@ -9,6 +9,9 @@ using System.Collections.Generic;
 using Leap;
 using System;
 using UnityEngine.Networking;
+using System.Collections;
+
+
 
 
 
@@ -127,7 +130,8 @@ public class HandController : MonoBehaviour {
   /** Initalizes the hand and tool lists and recording, if enabled.*/
   void Start() {
 
-		sendRequest ();
+	//GetText ();
+	StartCoroutine(GetText());
 	//lineRenderer = gameObject.AddComponent<LineRenderer> ();
     // Initialize hand lookup tables.
     hand_graphics_ = new Dictionary<int, HandModel>();
@@ -496,24 +500,43 @@ public class HandController : MonoBehaviour {
     }
   }
 
-	public void sendRequest(){
+	IEnumerator GetText() {
 
-		List<IMultipartFormSection> formData = new List<IMultipartFormSection>();
-		formData.Add( new MultipartFormDataSection("field1=foo&field2=bar") );
-		formData.Add( new MultipartFormFileSection("my file data", "myfile.txt") );
-		Debug.Log(formData);
+		UnityWebRequest www = UnityWebRequest.Put("https://www.wolframcloud.com/objects/adhebbar/junk/demo", "[[2,3],[3,4]]");
+		www.SetRequestHeader("Content-Type", "application/json");
 
-		UnityWebRequest www = UnityWebRequest.Post("https://www.wolframcloud.com/objects/adhebbar/junk/demo", formData);
-		www.SendWebRequest ();
+//		UnityEngine.WWW CreateUnityWebRequestV6(string url, string param) {
+//			Dictionary<string, string> headers = new Dictionary<string, string>();
+//			headers.Add("Content-Type", "application/json");
+//			byte[] body = Encoding.UTF8.GetBytes([);
+//			UnityEngine.WWW www = new UnityEngine.WWW(url, body, headers);
+//			return www;
+//		}
 
-		if(www.isNetworkError) {
+		// execute the request
+		//var content2 = response.Content;
+		//Debug.Log (content);
+
+
+		//
+//		form.AddField ("undefined","[[2,3],[3,4],[5,6]]");
+//		form.AddField ("Body","[[2,3],[3,4],[5,6]]");
+//		UnityWebRequest www = UnityWebRequest.Post("https://www.wolframcloud.com/objects/adhebbar/junk/demo",body);
+//
+//
+//
+		yield return www.SendWebRequest();
+
+		if(www.isNetworkError || www.isHttpError) {
 			Debug.Log(www.error);
 		}
 		else {
-			Debug.Log("Form upload complete!");
-		}
-	
+			// Show results as text
+			Debug.Log(www.downloadHandler.text);
 
+			// Or retrieve results as binary data
+			byte[] results = www.downloadHandler.data;
+		}
 	}
 
 
