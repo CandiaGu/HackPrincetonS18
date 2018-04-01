@@ -15,7 +15,7 @@ public class cameraScript : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		transform.LookAt(rotateAround.position);
-		transform.RotateAround(rotateAround.position, Vector3.up, 50);
+		transform.RotateAround(rotateAround.position, Vector3.up, 5);
 		//transform.Translate(Vector3.up * Time.deltaTime*50);
 	}
 }

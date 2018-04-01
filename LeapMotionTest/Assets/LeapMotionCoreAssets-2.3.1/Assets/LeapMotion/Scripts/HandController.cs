@@ -299,16 +299,17 @@ public class HandController : MonoBehaviour {
 					lineRenderer.SetPositions (equaPoints.ToArray ());
 				} else {
 
-					cameraObj = GameObject.Find ("Main Camera");
-					rotateAround = GameObject.Find ("HandController").GetComponent<Transform> ();
 
-					cameraObj.transform.LookAt (rotateAround.position);
-					cameraObj.transform.RotateAround (rotateAround.position, Vector3.up, .5f);
 
 				}
 				int b = checkSwipe (leap_hand);
 				if (b != 0) {
 					curAngle = b * 30 * Time.deltaTime;
+					cameraObj = GameObject.Find ("Main Camera");
+					rotateAround = GameObject.Find ("HandController").GetComponent<Transform> ();
+
+					cameraObj.transform.LookAt (rotateAround.position);
+					cameraObj.transform.RotateAround (rotateAround.position, Vector3.up, curAngle);//.5f);
 					//lineRenderer.transform.RotateAround(Vector3.zero, Vector3.up, b*30 * Time.deltaTime);
 
 				}
@@ -601,7 +602,7 @@ public class HandController : MonoBehaviour {
 
 
 
-		UnityWebRequest www = UnityWebRequest.Put("https://www.wolframcloud.com/objects/candi37/junk/demo", convertVectorListToString(linePoints));
+		UnityWebRequest www = UnityWebRequest.Put("https://www.wolframcloud.com/objects/candi37/junk/demo2", convertVectorListToString(linePoints));
 
 		www.SetRequestHeader("Content-Type", "application/json");
 
@@ -718,11 +719,11 @@ returns -1 left; 0 nothing; 1 right
 				countAngle = countAngle + pointingToward.Yaw;
 			}
 		}
-		if(countAngle >= 2){
+		if(countAngle >= 5){
 			return 1;
 		}
 
-		if(countAngle <= -2)
+		if(countAngle <= -5)
 		{
 
 			return -1;
