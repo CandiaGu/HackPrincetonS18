@@ -11,7 +11,8 @@ using Leap;
 using System;
 using UnityEngine.Networking;
 using System.Collections;
-
+using System.Text.RegularExpressions;
+ 
 
 
 
@@ -54,7 +55,7 @@ public class HandController : MonoBehaviour {
   public HandModel rightPhysicsModel;
   // If this is null hands will have no parent
   public Transform handParent = null;
-
+  private Transform rotateAround;
   /** The GameObject containing both graphics and colliders for tools. */
   public ToolModel toolModel;
 
@@ -67,8 +68,9 @@ public class HandController : MonoBehaviour {
   public bool destroyHands = true;
 
   /** The scale factors for hand movement. Set greater than 1 to give the hands a greater range of motion. */
-	public Vector3 handMovementScale = new Vector3(1, 0, 0);
+  public Vector3 handMovementScale = new Vector3(1, 0, 0);
 
+	public float curAngle = 0;
   // Recording parameters.
   /** Set true to enable recording. */
   public bool enableRecordPlayback = false;
@@ -79,6 +81,7 @@ public class HandController : MonoBehaviour {
   /** Whether to loop the playback. */
   public bool recorderLoop = true;
   
+	private GameObject cameraObj;
   /** The object used to control recording and playback.*/
   protected LeapRecorder recorder_ = new LeapRecorder();
   
@@ -96,8 +99,6 @@ public class HandController : MonoBehaviour {
   private long prev_graphics_id_ = 0;
   private long prev_physics_id_ = 0;
 
-  private Vector3 prev_tip = Vector3.zero;
-
   private int numPoint = 0;
 
   public LineRenderer lineRenderer;
@@ -105,7 +106,16 @@ public class HandController : MonoBehaviour {
   public Color c1 = Color.yellow;
   public Color c2 = Color.red;
 
-public List<Vector3> linePoints;
+  public List<Vector3> linePoints;
+	public List<Vector3> equaPoints;
+
+	public string equaIMG;
+	public GameObject cube;
+	private Texture2D tex;
+
+	Material m_Material;
+
+	//var this:transform;
   
   /** Draws the Leap Motion gizmo when in the Unity editor. */
   void OnDrawGizmos() {
@@ -145,7 +155,8 @@ public List<Vector3> linePoints;
 	
 	//LINE RENDERER
 	lineRenderer = gameObject.AddComponent<LineRenderer> ();
-	lineRenderer.positionCount = 1;
+	linePoints = new List<Vector3> ();
+	//lineRenderer.positionCount = 1;
 	lineRenderer.material = new Material (Shader.Find ("Particles/Additive"));
 		lineRenderer.startWidth = 15;
 		lineRenderer.endWidth = 15;
@@ -223,91 +234,135 @@ public List<Vector3> linePoints;
 	protected void UpdateHandModels(Dictionary<int, HandModel> all_hands,
                                   HandList leap_hands,
                                   HandModel left_model, HandModel right_model) {
-    List<int> ids_to_check = new List<int>(all_hands.Keys);
+		List<int> ids_to_check = new List<int> (all_hands.Keys);
 
-    // Go through all the active hands and update them.
-    int num_hands = leap_hands.Count;
-    for (int h = 0; h < num_hands; ++h) {
-      Hand leap_hand = leap_hands[h];
+		// Go through all the active hands and update them.
+		int num_hands = leap_hands.Count;
+		for (int h = 0; h < num_hands; ++h) {
+			Hand leap_hand = leap_hands [h];
       
-	  //Get the finger_tip location if finger is pinched
-		if (leap_hand.PinchStrength > 0.2) {
+			//Get the finger_tip location if finger is pinched
+			if (leap_hand.PinchStrength > 0.2) {
+				if (linePoints.Count == 0) {
+					lineRenderer.SetVertexCount (0);
+				}
+
 				FingerList point = leap_hand.Fingers.FingerType (Finger.FingerType.TYPE_INDEX);
-				Vector3 new_tip = UnityVectorExtension.ToUnity(point [0].TipPosition);
+				Vector3 new_tip = UnityVectorExtension.ToUnity (point [0].TipPosition);
 				new_tip.x = new_tip.x * 1.5f;
-				//Debug.Log ("new" + new_tip);
-				//Debug.Log ("prev" + prev_tip);
-
-				//Debug.DrawLine (prev_tip, new_tip, Color.white, 10);
-				//Debug.DrawLine(Vector3.zero, new Vector3(100,100,100), Color.white, 100);
-
-				prev_tip = new_tip;
 
 
-				lineRenderer.SetPosition(lineRenderer.positionCount-1, new_tip);
+
+				lineRenderer.SetPosition (lineRenderer.positionCount - 1, new_tip);
 
 				lineRenderer.positionCount = lineRenderer.positionCount + 1;
-				lineRenderer.SetPosition(lineRenderer.positionCount-1, new_tip);
+				lineRenderer.SetPosition (lineRenderer.positionCount - 1, new_tip);
 				linePoints.Add (new_tip);
-				Debug.Log (linePoints[linePoints.Count-1]);
+				Debug.Log ("pinching: " + linePoints.Count);
+				//Debug.Log (linePoints [linePoints.Count - 1]);
 				if (numPoint % 15 == 0) {
 					lineRenderer.Simplify (.1f);
 				}
 				numPoint++;
 
-		}
+			} else {
+				
+				//transform.Translate(Vector3.up * Time.deltaTime*50);
+				
+				if (linePoints.Count > 0) {
+					Debug.Log ("not pinching: " + convertVectorListToString (linePoints) + linePoints.Count);
+					StartCoroutine (GetText ());
+					//lineRenderer = gameObject.AddComponent<LineRenderer> ();
+					//lineRenderer.positionCount = 100;
+
+					tex = new Texture2D (128, 128);
+
+					string fromBase64 = equaIMG;
+					byte[] data = System.Convert.FromBase64String (fromBase64);
+					tex.LoadImage (data);
+
+
+					cube = GameObject.Find ("Cube");
+					cube.transform.position = new Vector3 (0, 0.5F, 0);
+					cube.transform.localScale = new Vector3 (tex.width * 2, tex.height * 2, 10);
+					//cube.transform.Rotate(new Vector3(0, 0, 180));
+
+					m_Material = cube.GetComponent<Renderer> ().material;
+					m_Material.mainTexture = tex;
+
+
+					linePoints.Clear ();
+					lineRenderer.SetVertexCount (0);
+
+					//lineRenderer = GetComponent<LineRenderer>();
+					lineRenderer.positionCount = equaPoints.Count;
+					lineRenderer.SetPositions (equaPoints.ToArray ());
+				} else {
+
+					cameraObj = GameObject.Find ("Main Camera");
+					rotateAround = GameObject.Find ("HandController").GetComponent<Transform> ();
+
+					cameraObj.transform.LookAt (rotateAround.position);
+					cameraObj.transform.RotateAround (rotateAround.position, Vector3.up, .5f);
+
+				}
+				int b = checkSwipe (leap_hand);
+				if (b != 0) {
+					curAngle = b * 30 * Time.deltaTime;
+					//lineRenderer.transform.RotateAround(Vector3.zero, Vector3.up, b*30 * Time.deltaTime);
+
+				}
 
 
 
-      HandModel model = (mirrorZAxis != leap_hand.IsLeft) ? left_model : right_model;
+				HandModel model = (mirrorZAxis != leap_hand.IsLeft) ? left_model : right_model;
 
-      // If we've mirrored since this hand was updated, destroy it.
-      if (all_hands.ContainsKey(leap_hand.Id) &&
-          all_hands[leap_hand.Id].IsMirrored() != mirrorZAxis) {
-        DestroyHand(all_hands[leap_hand.Id]);
-        all_hands.Remove(leap_hand.Id);
-      }
+				// If we've mirrored since this hand was updated, destroy it.
+				if (all_hands.ContainsKey (leap_hand.Id) &&
+				      all_hands [leap_hand.Id].IsMirrored () != mirrorZAxis) {
+					DestroyHand (all_hands [leap_hand.Id]);
+					all_hands.Remove (leap_hand.Id);
+				}
 
-      // Only create or update if the hand is enabled.
-      if (model != null) {
-        ids_to_check.Remove(leap_hand.Id);
+				// Only create or update if the hand is enabled.
+				if (model != null) {
+					ids_to_check.Remove (leap_hand.Id);
+					// Create the hand and initialized it if it doesn't exist yet.
+					if (!all_hands.ContainsKey (leap_hand.Id)) {
+						HandModel new_hand = CreateHand (model);
+						new_hand.SetLeapHand (leap_hand);
+						new_hand.MirrorZAxis (mirrorZAxis);
+						new_hand.SetController (this);
 
-        // Create the hand and initialized it if it doesn't exist yet.
-        if (!all_hands.ContainsKey(leap_hand.Id)) {
-          HandModel new_hand = CreateHand(model);
-          new_hand.SetLeapHand(leap_hand);
-          new_hand.MirrorZAxis(mirrorZAxis);
-          new_hand.SetController(this);
-
-          // Set scaling based on reference hand.
-          float hand_scale = MM_TO_M * leap_hand.PalmWidth / new_hand.handModelPalmWidth;
-          new_hand.transform.localScale = hand_scale * transform.lossyScale;
-
-          new_hand.InitHand(); 
+						// Set scaling based on reference hand.
+						float hand_scale = MM_TO_M * leap_hand.PalmWidth / new_hand.handModelPalmWidth;
+						new_hand.transform.localScale = hand_scale * transform.lossyScale;
+						//new_hand.transform.RotateAround(Vector3.zero, Vector3.up, -curAngle);
+						new_hand.InitHand (); 
 		
-          new_hand.UpdateHand();
-          all_hands[leap_hand.Id] = new_hand;
-        }
-        else {
-          // Make sure we update the Leap Hand reference.
-          HandModel hand_model = all_hands[leap_hand.Id];
-          hand_model.SetLeapHand(leap_hand);
-          hand_model.MirrorZAxis(mirrorZAxis);
+						new_hand.UpdateHand ();
+						all_hands [leap_hand.Id] = new_hand;
+					} else {
+						// Make sure we update the Leap Hand reference.
+						HandModel hand_model = all_hands [leap_hand.Id];
+						hand_model.SetLeapHand (leap_hand);
+						hand_model.MirrorZAxis (mirrorZAxis);
 
-          // Set scaling based on reference hand.
-          float hand_scale = MM_TO_M * leap_hand.PalmWidth / hand_model.handModelPalmWidth;
-          hand_model.transform.localScale = hand_scale * transform.lossyScale;
-          hand_model.UpdateHand();
-        }
-      }
-    }
+						// Set scaling based on reference hand.
+						float hand_scale = MM_TO_M * leap_hand.PalmWidth / hand_model.handModelPalmWidth;
+						hand_model.transform.localScale = hand_scale * transform.lossyScale;
+						hand_model.UpdateHand ();
+					}
+				}
+			}
 
-    // Destroy all hands with defunct IDs.
-    for (int i = 0; i < ids_to_check.Count; ++i) {
-      DestroyHand(all_hands[ids_to_check[i]]);
-      all_hands.Remove(ids_to_check[i]);
-    }
-  }
+			// Destroy all hands with defunct IDs.
+			for (int i = 0; i < ids_to_check.Count; ++i) {
+				DestroyHand (all_hands [ids_to_check [i]]);
+				all_hands.Remove (ids_to_check [i]);
+			}
+		}
+	}
 
   /** Creates a ToolModel instance. */
   protected ToolModel CreateTool(ToolModel model) {
@@ -390,7 +445,8 @@ public List<Vector3> linePoints;
   /** Updates the graphics objects. */
   void Update() {
 
-	
+	//transform.RotateAround(Vector3.zero, Vector3.up, 30 * Time.deltaTime);
+
     if (leap_controller_ == null)
       return;
     
@@ -542,7 +598,11 @@ public List<Vector3> linePoints;
 
 	IEnumerator GetText() {
 
-		UnityWebRequest www = UnityWebRequest.Put("https://www.wolframcloud.com/objects/adhebbar/junk/demo", "[[2,3],[3,4]]");
+
+
+
+		UnityWebRequest www = UnityWebRequest.Put("https://www.wolframcloud.com/objects/candi37/junk/demo", convertVectorListToString(linePoints));
+
 		www.SetRequestHeader("Content-Type", "application/json");
 
 //		UnityEngine.WWW CreateUnityWebRequestV6(string url, string param) {
@@ -572,12 +632,105 @@ public List<Vector3> linePoints;
 		}
 		else {
 			// Show results as text
-			Debug.Log(www.downloadHandler.text);
+			string res = www.downloadHandler.text;
+			Debug.Log ("og" + convertVectorListToString (linePoints));
+			Debug.Log("res" + res);
 
 			// Or retrieve results as binary data
 			byte[] results = www.downloadHandler.data;
+			convertStringToVectorList (res);
+
 		}
 	}
 
+	string convertVectorListToString(List<Vector3> list){
+		string res = "[";
+		foreach( Vector3 t in list){
+			string temp = (t.x).ToString() + "," + (t.y).ToString() + "," + (t.z).ToString();
+			res += "[" + temp + "]" + ",";
+		}
+		res = res.Substring(0, res.Length-1) + "]";
+
+		return res;
+
+	}
+
+	void convertStringToVectorList(string str){
+		AllData data = new AllData (); 
+		data = JsonUtility.FromJson<AllData>(str);
+
+		string temp = str.Substring(0,str.IndexOf ("Image"));
+		MatchCollection allNums = Regex.Matches (temp, @"\-*\d+");//.Cast<Match>().Select(m => m.Value).ToArray();//\-*\D+");
+
+		int count = 0; int x=0; int y=0;
+		List<Vector3> allVectors = new List<Vector3>();
+		foreach (Match m in allNums) {
+			if (count % 2 == 0) {
+				x = Int32.Parse (m.Value);
+				//
+			} else {
+				y = Int32.Parse (m.Value);
+				allVectors.Add (new Vector3 (x,y,0));
+				Debug.Log ("data: " + x +" "+y);
+			}
+			count++;
+				
+		}
+		equaPoints = allVectors;
+		Debug.Log ("data:" + allNums[0]);
+
+		//equaPoints = new Vector3[data.Data.Length];
+
+		//convert int
+//		foreach (Vector2 elem in data.Data) {
+//			
+//			equaPoints[count] =  new Vector3 (elem.x, 0, elem.y);
+//			count++;
+//
+//		}
+
+		equaIMG = data.Image;
+
+	}
+
+	[Serializable]
+	public class AllData
+	{
+		public Vector2[] Data;
+		public String Image;
+	}
+
+	/*
+returns -1 left; 0 nothing; 1 right
+*/
+	/* checks for swipe gesture */
+		int checkSwipe(Hand hand){
+		//Checking how many are extended and the angle
+		float countAngle = 0;
+
+		//Goes through each finger and checks how many of the extended fingers are facing the same way
+		foreach (Pointable p in hand.Pointables){ 
+			Finger finger = new Finger(p);
+			if(finger.IsExtended)
+			{
+				
+				Vector pointingToward = p.Direction;
+				countAngle = countAngle + pointingToward.Yaw;
+			}
+		}
+		if(countAngle >= 2){
+			return 1;
+		}
+
+		if(countAngle <= -2)
+		{
+
+			return -1;
+		}
+		return 0;
+	}
+		
 
 }
+
+
