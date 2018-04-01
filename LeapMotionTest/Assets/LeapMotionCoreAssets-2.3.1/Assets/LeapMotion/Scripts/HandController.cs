@@ -5,6 +5,7 @@
 \******************************************************************************/
 
 using UnityEngine;
+using UnityEngine.UI;
 using System.Collections.Generic;
 using Leap;
 using System;
@@ -95,9 +96,16 @@ public class HandController : MonoBehaviour {
   private long prev_graphics_id_ = 0;
   private long prev_physics_id_ = 0;
 
-	private Vector3 prev_tip = Vector3.zero;
-  //private LineRenderer lineRenderer;
+  private Vector3 prev_tip = Vector3.zero;
 
+  private int numPoint = 0;
+
+  public LineRenderer lineRenderer;
+
+  public Color c1 = Color.yellow;
+  public Color c2 = Color.red;
+
+public List<Vector3> linePoints;
   
   /** Draws the Leap Motion gizmo when in the Unity editor. */
   void OnDrawGizmos() {
@@ -130,9 +138,29 @@ public class HandController : MonoBehaviour {
   /** Initalizes the hand and tool lists and recording, if enabled.*/
   void Start() {
 
+
 	//GetText ();
 	StartCoroutine(GetText());
 	//lineRenderer = gameObject.AddComponent<LineRenderer> ();
+	
+	//LINE RENDERER
+	lineRenderer = gameObject.AddComponent<LineRenderer> ();
+	lineRenderer.positionCount = 1;
+	lineRenderer.material = new Material (Shader.Find ("Particles/Additive"));
+		lineRenderer.startWidth = 15;
+		lineRenderer.endWidth = 15;
+	float alpha = 1.0f;
+	Gradient gradient = new Gradient();
+	gradient.SetKeys(
+		new GradientColorKey[] { new GradientColorKey(c1, 0.0f), new GradientColorKey(c2, 1.0f) },
+		new GradientAlphaKey[] { new GradientAlphaKey(alpha, 0.0f), new GradientAlphaKey(alpha, 1.0f) }
+	);
+	lineRenderer.colorGradient = gradient;
+	lineRenderer.loop = false;
+
+	//lineRenderer.SetPosition(0, new Vector3(5,5,100));
+
+
     // Initialize hand lookup tables.
     hand_graphics_ = new Dictionary<int, HandModel>();
     hand_physics_ = new Dictionary<int, HandModel>();
@@ -203,17 +231,29 @@ public class HandController : MonoBehaviour {
       Hand leap_hand = leap_hands[h];
       
 	  //Get the finger_tip location if finger is pinched
-		if (leap_hand.PinchStrength > 0.4) {
+		if (leap_hand.PinchStrength > 0.2) {
 				FingerList point = leap_hand.Fingers.FingerType (Finger.FingerType.TYPE_INDEX);
 				Vector3 new_tip = UnityVectorExtension.ToUnity(point [0].TipPosition);
+				new_tip.x = new_tip.x * 1.5f;
+				//Debug.Log ("new" + new_tip);
+				//Debug.Log ("prev" + prev_tip);
 
-				Debug.Log ("new" + new_tip);
-				Debug.Log ("prev" + prev_tip);
-
-				Debug.DrawLine (prev_tip, new_tip, Color.white, 10);
+				//Debug.DrawLine (prev_tip, new_tip, Color.white, 10);
 				//Debug.DrawLine(Vector3.zero, new Vector3(100,100,100), Color.white, 100);
 
 				prev_tip = new_tip;
+
+
+				lineRenderer.SetPosition(lineRenderer.positionCount-1, new_tip);
+
+				lineRenderer.positionCount = lineRenderer.positionCount + 1;
+				lineRenderer.SetPosition(lineRenderer.positionCount-1, new_tip);
+				linePoints.Add (new_tip);
+				Debug.Log (linePoints[linePoints.Count-1]);
+				if (numPoint % 15 == 0) {
+					lineRenderer.Simplify (.1f);
+				}
+				numPoint++;
 
 		}
 
