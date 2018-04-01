@@ -59,6 +59,8 @@ public class HandController : MonoBehaviour {
   /** The GameObject containing both graphics and colliders for tools. */
   public ToolModel toolModel;
 
+  public int dim = 3;
+
   /** Set true if the Leap Motion hardware is mounted on an HMD; otherwise, leave false. */
   public bool isHeadMounted = false;
   /** Reverses the z axis. */
@@ -283,7 +285,7 @@ public class HandController : MonoBehaviour {
 
 
 					cube = GameObject.Find ("Cube");
-					cube.transform.position = new Vector3 (0, 0.5F, 0);
+					cube.transform.position = new Vector3 (0, -100, 0);
 					cube.transform.localScale = new Vector3 (tex.width * 2, tex.height * 2, 10);
 					//cube.transform.Rotate(new Vector3(0, 0, 180));
 
@@ -602,7 +604,7 @@ public class HandController : MonoBehaviour {
 
 
 
-		UnityWebRequest www = UnityWebRequest.Put("https://www.wolframcloud.com/objects/candi37/junk/demo2", convertVectorListToString(linePoints));
+		UnityWebRequest www = UnityWebRequest.Put("https://www.wolframcloud.com/objects/lucypictures01/junk/demo1", convertVectorListToString(linePoints));
 
 		www.SetRequestHeader("Content-Type", "application/json");
 
@@ -663,18 +665,40 @@ public class HandController : MonoBehaviour {
 		string temp = str.Substring(0,str.IndexOf ("Image"));
 		MatchCollection allNums = Regex.Matches (temp, @"\-*\d+");//.Cast<Match>().Select(m => m.Value).ToArray();//\-*\D+");
 
-		int count = 0; int x=0; int y=0;
+		int count = 0; int x=0; int y=0; int z = 0;
 		List<Vector3> allVectors = new List<Vector3>();
 		foreach (Match m in allNums) {
-			if (count % 2 == 0) {
+
+			if( dim == 2){
+				if (count % 2 == 0) {
+					x = Int32.Parse (m.Value);
+					//
+				} else {
+					if (count % 2 == 1) {
+						y = Int32.Parse (m.Value);
+						allVectors.Add (new Vector3 (x, y, 0));
+						Debug.Log ("data: " + x + " " + y + " " + 0);
+					}
+				}
+				count++;
+			}
+
+
+			if( dim == 3){
+			if (count % 3 == 0) {
 				x = Int32.Parse (m.Value);
 				//
 			} else {
-				y = Int32.Parse (m.Value);
-				allVectors.Add (new Vector3 (x,y,0));
-				Debug.Log ("data: " + x +" "+y);
+				if (count % 3 == 1) {
+					y = Int32.Parse (m.Value);
+				} else {
+					z = Int32.Parse (m.Value);
+					allVectors.Add (new Vector3 (x, y, z));
+					Debug.Log ("data: " + x + " " + y + " " + z);
+				}
 			}
 			count++;
+			}
 				
 		}
 		equaPoints = allVectors;
