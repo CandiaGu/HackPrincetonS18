@@ -59,7 +59,7 @@ public class HandController : MonoBehaviour {
   /** The GameObject containing both graphics and colliders for tools. */
   public ToolModel toolModel;
 
-  public int dim = 3;
+  public int dim = 2;
 
   /** Set true if the Leap Motion hardware is mounted on an HMD; otherwise, leave false. */
   public bool isHeadMounted = false;
@@ -602,9 +602,9 @@ public class HandController : MonoBehaviour {
 	IEnumerator GetText() {
 
 
-
-
-		UnityWebRequest www = UnityWebRequest.Put("https://www.wolframcloud.com/objects/lucypictures01/junk/demo1", convertVectorListToString(linePoints));
+		UnityWebRequest www = UnityWebRequest.Put("https://www.wolframcloud.com/objects/lucypictures01/junk/demo", convertVectorListToString(linePoints));
+		//if(dim==3)
+		//UnityWebRequest	www = UnityWebRequest.Put("https://www.wolframcloud.com/objects/lucypictures01/junk/demo1", convertVectorListToString(linePoints));
 
 		www.SetRequestHeader("Content-Type", "application/json");
 
@@ -669,7 +669,7 @@ public class HandController : MonoBehaviour {
 		List<Vector3> allVectors = new List<Vector3>();
 		foreach (Match m in allNums) {
 
-			if( dim == 2){
+//			if( dim == 2){
 				if (count % 2 == 0) {
 					x = Int32.Parse (m.Value);
 					//
@@ -681,24 +681,24 @@ public class HandController : MonoBehaviour {
 					}
 				}
 				count++;
-			}
+//			}
 
 
-			if( dim == 3){
-			if (count % 3 == 0) {
-				x = Int32.Parse (m.Value);
-				//
-			} else {
-				if (count % 3 == 1) {
-					y = Int32.Parse (m.Value);
-				} else {
-					z = Int32.Parse (m.Value);
-					allVectors.Add (new Vector3 (x, y, z));
-					Debug.Log ("data: " + x + " " + y + " " + z);
-				}
-			}
-			count++;
-			}
+//			//if( dim == 3){
+//				if (count % 3 == 0) {
+//					x = Int32.Parse (m.Value);
+//					//
+//				} else {
+//					if (count % 3 == 1) {
+//						y = Int32.Parse (m.Value);
+//					} else {
+//						z = Int32.Parse (m.Value);
+//						allVectors.Add (new Vector3 (x, y, z));
+//						Debug.Log ("data: " + x + " " + y + " " + z);
+//					}
+//				}
+//				count++;
+//			//}
 				
 		}
 		equaPoints = allVectors;

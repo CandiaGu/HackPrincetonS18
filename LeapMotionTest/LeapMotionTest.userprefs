@@ -1,0 +1,14 @@
+﻿<Properties StartupItem="Assembly-CSharp.csproj">
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Unity.Instance.Unity Editor" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/LeapMotionCoreAssets-2.3.1/Assets/LeapMotion/Scripts/HandController.cs">
+    <Files>
+      <File FileName="Assets/LeapMotionCoreAssets-2.3.1/Assets/LeapMotion/Scripts/HandController.cs" Line="701" Column="6" />
+      <File FileName="Assets/Scripts/CubeScript.cs" Line="15" Column="3" />
+      <File FileName="Assets/Scripts/cameraScript.cs" Line="7" Column="33" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+</Properties>
